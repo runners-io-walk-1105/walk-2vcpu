@@ -1,0 +1,12 @@
+# RUN-4308 live check: a pull request from a fork (runners-wizard-test-1116) to runners-io-walk-1105/walk-2vcpu.
+# Lives on the fork's branch only; never merged. Forks are off for the base by default, so this job must be refused.
+name: fork pr (RUN-4308)
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  fork:
+    runs-on: runnersio-2vcpu-ubuntu-2404
+    timeout-minutes: 5
+    steps:
+      - run: echo fork ok
