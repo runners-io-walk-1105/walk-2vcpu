@@ -1,0 +1,16 @@
+# RUN-4455 live check, ARM only (Grant 2026-11-19: "One ARM job now"). The ARM job runs on paid GCP C4A burst with no
+# disk; the 2 vCPU Ubuntu x64 job is the control and runs on our own metal with its disk. Manual only.
+name: sticky ARM (RUN-4455)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  arm:
+    runs-on: runnersio-2vcpu-ubuntu-2404-arm
+    steps:
+      - run: uname -m; echo "arm ok"
+  small:
+    runs-on: runnersio-2vcpu-ubuntu-2404
+    steps:
+      - run: nproc; echo "2 vcpu ok"
