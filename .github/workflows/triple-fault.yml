@@ -1,0 +1,50 @@
+name: triple fault own VM (RUN-4875)
+
+# RUN-4875 live exercise: a metal build that does work, then triple-faults its
+# own guest, so Firecracker exits nonzero and our agent reports before GitHub
+# does. Authorised once by cihero-90 (2026-11-19 18:4xZ), ONLY on ghwarp-gra3-01,
+# ghwarp-gra2-01 or ghwarp-rbx2-01. Deleted after the exercise.
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  fault:
+    runs-on: runnersio-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+    steps:
+      - name: where am I
+        id: gate
+        run: |
+          ip=$(curl -s --max-time 10 https://api.ipify.org || true)
+          [ -n "$ip" ] || ip=$(curl -s --max-time 10 https://ifconfig.me/ip || true)
+          echo "egress ip: ${ip:-unknown}"
+          echo "hostname: $(hostname)"
+          echo "runner: ${RUNNER_NAME:-unknown}"
+          case "$ip" in
+            51.255.91.171|51.77.143.9|46.105.115.154)
+              echo "GATE-PASS $ip"
+              echo "pass=1" >> "$GITHUB_OUTPUT"
+              # Hold, so the operator can confirm the node on ghwarp-cp and
+              # cancel this run before the fault if it disagrees. Also the work.
+              for i in $(seq 1 45); do echo "hold line $i at $(date -u +%H:%M:%S)"; sleep 2; done
+              ;;
+            *)
+              echo "NOT-ALLOWED-NODE"
+              exit 0
+              ;;
+          esac
+      - name: the fault
+        if: steps.gate.outputs.pass == '1'
+        run: |
+          if [ ! -e /sys/kernel/reboot/type ]; then
+            echo "NO-REBOOT-TYPE: /sys/kernel/reboot/type is missing; no fault"
+            exit 0
+          fi
+          echo "reboot type before: $(cat /sys/kernel/reboot/type)"
+          echo "FAULTING at $(date -u +%H:%M:%S)"
+          sleep 15
+          echo triple | sudo tee /sys/kernel/reboot/type
+          sudo reboot -f
