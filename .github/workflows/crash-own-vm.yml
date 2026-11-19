@@ -1,0 +1,24 @@
+name: crash own VM (RUN-4875)
+
+# RUN-4875 live exercise: a metal build that does work, then crashes its own
+# guest kernel, so our agent reports before GitHub does. Dispatched once, then
+# this file is deleted.
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  crash:
+    runs-on: runnersio-2vcpu-ubuntu-2404
+    timeout-minutes: 10
+    steps:
+      - name: work for 60 seconds
+        run: |
+          for i in $(seq 1 30); do
+            echo "work line $i at $(date -u +%H:%M:%S)"
+            sleep 2
+          done
+      - name: crash the guest kernel
+        run: sudo sh -c 'echo 1 > /proc/sys/kernel/sysrq; echo c > /proc/sysrq-trigger'
