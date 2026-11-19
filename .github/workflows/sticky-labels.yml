@@ -1,0 +1,25 @@
+# RUN-4455 live check: a sticky-disk organisation's ARM, Windows and 32 vCPU jobs run
+# (with no disk) instead of being failed; a 2 vCPU Ubuntu x64 job still gets its disk.
+# Manual only. Each job is a few seconds of echo.
+name: sticky labels (RUN-4455)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  arm:
+    runs-on: runnersio-2vcpu-ubuntu-2404-arm
+    steps:
+      - run: uname -m; echo "arm ok"
+  windows:
+    runs-on: runnersio-2vcpu-windows-2022
+    steps:
+      - run: echo "windows ok"
+  big:
+    runs-on: runnersio-32vcpu-ubuntu-2404
+    steps:
+      - run: nproc; echo "32 vcpu ok"
+  small:
+    runs-on: runnersio-2vcpu-ubuntu-2404
+    steps:
+      - run: nproc; echo "2 vcpu ok"
